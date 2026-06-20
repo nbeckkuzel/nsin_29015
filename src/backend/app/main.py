@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,25 +33,26 @@ async def import_screenshots(files: list[UploadFile] = File(...)) -> DashboardSt
     new_tasks: list[Task] = []
     for f in files:
         image_bytes = await f.read()
-        parsed = ai.read_note_from_image(image_bytes)  # Vision OCR
-        cls = ai.classify(parsed)                       # klasyfikacja + RAG
-        task = Task(
-            id=f"t_{uuid.uuid4().hex[:8]}",
-            raw_text=parsed["raw_text"],
-            source_image=f.filename,
-            title=parsed["title"],
-            label=parsed["label"],
-            created_date=parsed["created_date"],
-            status=cls["status"],
-            ai_priority=cls["ai_priority"],
-            ai_reasoning=cls["ai_reasoning"],
-        )
-        new_tasks.append(task)
-        # zasil bazę wektorową — ten sam Chroma obsłuży potem czat
-        rag.index_note(
-            task.id, task.raw_text, task.label, task.status,
-            task.created_date.isoformat(),
-        )
+        items = ai.read_note_from_image(image_bytes)  # Vision: lista niewykonanych zadań
+        for parsed in items:
+            cls = ai.classify(parsed)  # klasyfikacja + RAG dla każdego zadania
+            task = Task(
+                id=f"t_{uuid.uuid4().hex[:8]}",
+                raw_text=parsed["raw_text"],
+                source_image=f.filename,
+                title=parsed["title"],
+                label=parsed["label"],
+                created_date=date.today(),  # data importu, nie z treści notatki
+                status=cls["status"],
+                ai_priority=cls["ai_priority"],
+                ai_reasoning=cls["ai_reasoning"],
+            )
+            new_tasks.append(task)
+            # zasil bazę wektorową — ten sam Chroma obsłuży potem czat
+            rag.index_note(
+                task.id, task.raw_text, task.label, task.status,
+                task.created_date.isoformat(),
+            )
     storage.add_tasks(new_tasks)
     return storage.get_state()
 
