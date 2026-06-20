@@ -1,0 +1,291 @@
+/* ===========================================================
+   NOTE-CTRL — cassette futurism
+   Bursztynowy fosfor na ciemnym tle, monospace, terminal misji.
+   =========================================================== */
+
+:root {
+  --bg: #120d09;
+  --panel: #1a1410;
+  --panel-2: #16110d;
+  --border: #3a2f22;
+  --border-bright: #5a4a32;
+  --amber: #ffb000;
+  --amber-dim: #c98a18;
+  --text: #e8d4a8;
+  --text-dim: #9a8462;
+  --text-faint: #7a6a52;
+  --red: #ff4a3d;
+  --orange: #d4521f;
+  --green: #4ade80;
+  --mono: "SF Mono", "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtelne scanline'y na całym ekranie — efekt CRT */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255, 176, 0, 0.025) 0px,
+    rgba(255, 176, 0, 0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ---- Nagłówek ---- */
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+.masthead-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--amber);
+  font-size: 15px;
+  letter-spacing: 1.5px;
+}
+.led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.masthead-sys { color: var(--text-faint); font-size: 12px; }
+
+/* ---- Pasek narzędzi ---- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: var(--amber);
+  background: transparent;
+  border: 1px solid var(--amber-dim);
+  border-radius: 3px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:hover { background: rgba(255, 176, 0, 0.1); border-color: var(--amber); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-busy { color: var(--text-faint); border-color: var(--border-bright); }
+
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 5px 11px;
+  border: 1px solid var(--border-bright);
+  border-radius: 2px;
+  color: var(--text-dim);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip:hover { border-color: var(--amber-dim); }
+.chip.on { border-color: var(--amber); color: var(--amber); }
+
+/* ---- Board ---- */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+@media (max-width: 800px) { .board { grid-template-columns: 1fr; } }
+
+.column {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-2);
+  padding: 12px;
+  min-height: 120px;
+}
+.column-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.column-head .count { margin-left: auto; color: var(--text-faint); font-size: 10px; }
+.col-urgent { color: var(--red); }
+.col-progress { color: var(--amber); }
+.col-stale { color: var(--orange); }
+.col-empty { color: var(--border-bright); text-align: center; font-size: 11px; padding: 8px 0; }
+
+/* ---- Karta taska ---- */
+.task {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel);
+  padding: 9px 11px;
+  margin-bottom: 8px;
+}
+.task-title {
+  font-size: 12px;
+  color: var(--text);
+  margin: 0 22px 8px 0;
+  line-height: 1.4;
+}
+.task-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--border-bright);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.task-close:hover { border-color: var(--red); color: var(--red); }
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 10px;
+}
+.task-label {
+  color: var(--text-dim);
+  border: 1px solid var(--border-bright);
+  padding: 1px 6px;
+  letter-spacing: 0.5px;
+}
+.task-age { letter-spacing: 1px; }
+.task-date { color: var(--text-faint); margin-left: auto; }
+.task-priority {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+}
+
+/* ---- Panele dolne ---- */
+.lower {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 800px) { .lower { grid-template-columns: 1fr; } }
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-2);
+  padding: 14px;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--amber);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.panel-head .legend { color: var(--text-faint); font-size: 10px; letter-spacing: 0; }
+
+/* ---- Czat ---- */
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+.chat-msg { font-size: 12px; line-height: 1.5; }
+.chat-user { color: var(--amber); }
+.chat-user::before { content: "> "; }
+.chat-bot { color: var(--text); padding-left: 2px; }
+.chat-bot::before { content: "◂ "; color: var(--text-dim); }
+.chat-sources { color: var(--text-faint); font-size: 10px; margin-top: 2px; }
+.chat-empty { color: var(--text-faint); font-size: 11px; }
+.chat-input-row { display: flex; gap: 8px; }
+.chat-input {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border-bright);
+  border-radius: 3px;
+  padding: 8px 10px;
+  outline: none;
+}
+.chat-input:focus { border-color: var(--amber-dim); }
+.chat-input::placeholder { color: var(--text-faint); }
+
+/* ---- Stany globalne ---- */
+.banner {
+  border: 1px solid var(--red);
+  border-radius: 3px;
+  background: rgba(255, 74, 61, 0.08);
+  color: var(--red);
+  font-size: 12px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+.loading { color: var(--text-dim); font-size: 13px; padding: 40px; text-align: center; }
+
+/* Pasek dekoracyjny */
+.deco-strip {
+  height: 14px;
+  margin-top: 16px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 176, 0, 0.18) 0 2px,
+    transparent 2px 6px
+  );
+}
